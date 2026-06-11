@@ -396,7 +396,7 @@ libros
 
 Carga el archivo `peliculas.csv` y responde:
 ```{r}
-movies <- read.csv("movies.csv")
+movies <- read.csv("csv/movies.csv")
 ```
 
 1.  ¿Cuántas filas y columnas tiene?
