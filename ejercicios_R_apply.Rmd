@@ -1,0 +1,413 @@
+# 20 Ejercicios de R: de R base a Tidyverse — Enunciados
+
+> Ejercicios para refrescar conocimientos. Dificultad media-alta.
+> Cada ejercicio incluye **enunciado** y **pista**. Las soluciones están en un archivo aparte.
+
+## 📁 Archivos necesarios
+
+Los siguientes CSVs deberían estar en tu directorio de trabajo:
+
+- `ventas.csv` — 500 ventas de productos (fecha, producto, región, vendedor, unidades, precio, descuento, categoría)
+- `empleados.csv` — 200 empleados (departamento, ciudad, salario, edad, evaluación...)
+- `clientes.csv` — 100 clientes con segmento y región
+- `pedidos.csv` — 800 pedidos vinculados a clientes
+- `temperaturas.csv` — Temperaturas mensuales por ciudad (formato ancho)
+- `notas_alumnos.csv` — Notas de 30 alumnos en 5 asignaturas (formato largo)
+
+Además se usa `nycflights13` para algunos ejercicios.
+
+## 📦 Setup
+
+```r
+# Paquetes necesarios
+install.packages(c("tidyverse", "nycflights13", "lubridate"))
+
+library(tidyverse)
+library(nycflights13)
+library(lubridate)
+
+# Carga de los CSVs
+ventas      <- read.csv("ventas.csv", stringsAsFactors = FALSE)
+empleados   <- read.csv("empleados.csv", stringsAsFactors = FALSE)
+clientes    <- read.csv("clientes.csv", stringsAsFactors = FALSE)
+pedidos     <- read.csv("pedidos.csv", stringsAsFactors = FALSE)
+temperaturas <- read.csv("temperaturas.csv", stringsAsFactors = FALSE)
+notas       <- read.csv("notas_alumnos.csv", stringsAsFactors = FALSE)
+```
+
+---
+
+# Parte 1 — R base (Ejercicios 1-7)
+
+## Ejercicio 1 — Vectores, indexación lógica y `which()`
+
+Dado un vector con 1000 números aleatorios entre 1 y 500:
+
+```r
+set.seed(123)
+v <- sample(1:500, 1000, replace = TRUE)
+```
+
+1. Obtén las **posiciones** (no los valores) de los números que son múltiplos de 7 **y** mayores que 200.
+2. Calcula la media de esos números.
+3. Reemplaza esos valores en `v` por `NA` y verifica cuántos `NA` quedaron.
+
+<details>
+<summary>💡 Pista</summary>
+
+Usa `which()` con una expresión lógica combinada con `&`. Para el reemplazo, indexa por posiciones. Para contar `NA`, usa `sum(is.na(...))`.
+</details>
+
+---
+
+## Ejercicio 2 — Listas anidadas y `lapply`/`sapply`
+
+Crea una lista con 5 elementos, cada uno un vector de longitud aleatoria entre 10 y 30, con valores normales (media 50, sd 10).
+
+1. Usando `sapply()`, obtén un vector con la **media** de cada elemento.
+2. Usando `lapply()`, devuelve una lista con los **valores que están por encima de la mediana** de cada elemento.
+3. Construye un `data.frame` con tres columnas: `nombre_elemento`, `longitud`, `media`.
+
+<details>
+<summary>💡 Pista</summary>
+
+`sapply` simplifica a vector cuando puede; `lapply` siempre devuelve lista. Para nombrar los elementos, usa `names(lista) <- ...` o `setNames()`.
+</details>
+
+---
+
+## Ejercicio 3 — `apply()` sobre matrices y normalización
+
+Crea una matriz 6x4 con valores aleatorios uniformes entre 0 y 100.
+
+1. Calcula la media y desviación típica de **cada columna** con `apply()`.
+2. Normaliza la matriz (z-score: `(x - media) / sd`) **columna a columna**, sin bucles.
+3. Verifica que las medias de las columnas normalizadas son ~0 y las sd ~1.
+
+<details>
+<summary>💡 Pista</summary>
+
+`apply(m, 2, fun)` aplica por columnas. Para normalizar usa `scale()` o construye un truco con `sweep()`.
+</details>
+
+---
+
+## Ejercicio 4 — Lectura de CSV, tipos y limpieza con R base
+
+Carga `ventas.csv` con `read.csv()`.
+
+1. Muestra `str()` y comprueba qué columnas no tienen el tipo correcto.
+2. Convierte `fecha` a tipo `Date`.
+3. Crea la columna `importe_bruto = unidades * precio_unitario`.
+4. Crea la columna `importe_neto` aplicando el descuento (en `descuento_pct`). Si el descuento es `NA`, considéralo 0.
+5. ¿Cuántas filas tienen `vendedor` faltante? Elimínalas.
+
+<details>
+<summary>💡 Pista</summary>
+
+`as.Date()`, `ifelse(is.na(x), 0, x)`, indexación lógica `df[!is.na(df$col), ]`.
+</details>
+
+---
+
+## Ejercicio 5 — `aggregate()` para resúmenes por grupo
+
+Usando el `ventas` ya enriquecido del ejercicio anterior:
+
+1. Calcula el **importe neto total** y el **número de ventas** por `region`.
+2. Calcula el importe neto medio por `region` **y** `categoria` simultáneamente.
+3. Encuentra el `vendedor` con mayor importe neto total.
+
+<details>
+<summary>💡 Pista</summary>
+
+Sintaxis de fórmula: `aggregate(importe_neto ~ region, data = ventas, FUN = sum)`. Para múltiples agrupaciones: `region + categoria`. Para múltiples resúmenes a la vez, considera pasar una función que devuelva un vector con nombres.
+</details>
+
+---
+
+## Ejercicio 6 — Funciones propias y control de flujo
+
+Escribe una función `clasificar_empleado(salario, evaluacion)` que devuelva:
+
+- `"Top"` si `salario >= 60000` **y** `evaluacion >= 4`
+- `"Bajo rendimiento"` si `evaluacion < 2.5`
+- `"Sobrepagado"` si `salario >= 60000` **y** `evaluacion < 2.5`
+- `"Promesa"` si `salario < 35000` **y** `evaluacion >= 4`
+- `"Estandar"` en otro caso
+- `NA` si alguna entrada es `NA`
+
+Ojo al **orden de evaluación**: "Sobrepagado" es más específico que "Bajo rendimiento". Aplica la función a `empleados` y crea la columna `categoria_empleado`. Cuenta cuántos hay de cada tipo.
+
+<details>
+<summary>💡 Pista</summary>
+
+Usa `if/else if/else`. Vectoriza con `Vectorize()` o con `mapply()`. Trata `NA` al principio del `if`.
+</details>
+
+---
+
+## Ejercicio 7 — Manejo de fechas con R base
+
+Usando `empleados`:
+
+1. Convierte `fecha_contratacion` a `Date`.
+2. Crea la columna `antiguedad_anios` (años completos desde la contratación hasta hoy).
+3. Cuenta empleados contratados en cada **año**.
+4. ¿Qué día de la semana es el más frecuente en las contrataciones? (Devuelve el nombre.)
+
+<details>
+<summary>💡 Pista</summary>
+
+`format(fecha, "%Y")` para el año, `format(fecha, "%A")` para el día de la semana (locale-dependiente). Para antigüedad: `as.numeric(difftime(Sys.Date(), fecha, units="days")) / 365.25`.
+</details>
+
+---
+
+# Parte 2 — Tidyverse (Ejercicios 8-20)
+
+## Ejercicio 8 — `dplyr` básico: `filter`, `select`, `arrange`, `mutate`
+
+Carga `ventas.csv` como tibble con `read_csv()` y resuelve **encadenando con `%>%`**:
+
+1. Filtra ventas de la categoría `"Computacion"` con `unidades >= 5`.
+2. Crea la columna `importe_neto` (mismo cálculo que en ejercicio 4).
+3. Quédate con las columnas `fecha, producto, region, unidades, importe_neto`.
+4. Ordena de mayor a menor `importe_neto` y muestra las 10 primeras.
+
+<details>
+<summary>💡 Pista</summary>
+
+`read_csv()` infiere tipos (la fecha ya vendrá como `Date`). Usa `coalesce(descuento_pct, 0)` o `replace_na()` para los `NA`.
+</details>
+
+---
+
+## Ejercicio 9 — `group_by` + `summarise` con múltiples métricas
+
+Sobre `ventas`:
+
+1. Por `region` y `categoria`, calcula:
+   - `n_ventas` = número de filas
+   - `unidades_totales` = suma de unidades
+   - `importe_medio` = media del importe_neto
+   - `importe_p90` = percentil 90 del importe_neto
+2. Quédate solo con combinaciones con al menos 10 ventas.
+3. Ordena por `importe_p90` descendente.
+
+<details>
+<summary>💡 Pista</summary>
+
+`n()`, `sum()`, `mean()`, `quantile(x, 0.9)`. Recuerda que `summarise()` con `group_by()` agrupado por 2 variables conserva el primer agrupamiento (usa `.groups = "drop"`).
+</details>
+
+---
+
+## Ejercicio 10 — `across()` para aplicar la misma operación a varias columnas
+
+Sobre `empleados`:
+
+1. Imputa los `NA` en `salario` y `evaluacion` por la **mediana** de cada columna (usa `across()`).
+2. Para cada `departamento`, calcula media y desviación típica de **todas** las columnas numéricas (con `across(where(is.numeric), ...)`).
+3. Renombra las columnas resultantes con prefijo `media_` y `sd_`.
+
+<details>
+<summary>💡 Pista</summary>
+
+`across(c(salario, evaluacion), ~ ifelse(is.na(.), median(., na.rm = TRUE), .))`.
+Para múltiples funciones: `across(where(is.numeric), list(media = mean, sd = sd), .names = "{.fn}_{.col}")`.
+</details>
+
+---
+
+## Ejercicio 11 — Joins (`inner`, `left`, `anti`)
+
+Con `clientes.csv` y `pedidos.csv`:
+
+1. **`left_join`**: añade información de cliente a cada pedido.
+2. **`inner_join`**: ¿cuántos pedidos hay con cliente válido?
+3. **`anti_join`**: ¿cuántos pedidos tienen un `id_cliente` que **no existe** en `clientes`?
+4. Calcula el importe total por `segmento` (solo pedidos `Entregado`).
+
+<details>
+<summary>💡 Pista</summary>
+
+`anti_join(pedidos, clientes, by = "id_cliente")` devuelve las filas de `pedidos` sin match en `clientes`.
+</details>
+
+---
+
+## Ejercicio 12 — `pivot_longer`: de ancho a largo
+
+`temperaturas.csv` está en formato ancho (una columna por mes).
+
+1. Conviértelo a formato largo con columnas `ciudad`, `mes`, `temperatura`.
+2. Convierte `mes` a factor ordenado (Ene, Feb, ..., Dic).
+3. Por `ciudad`, calcula la temperatura media anual.
+4. Identifica la ciudad con la **mayor amplitud térmica** (max − min).
+
+<details>
+<summary>💡 Pista</summary>
+
+`pivot_longer(cols = -ciudad, names_to = "mes", values_to = "temperatura")`.
+Para el factor ordenado: `factor(mes, levels = c("Ene", "Feb", ...))`.
+</details>
+
+---
+
+## Ejercicio 13 — `pivot_wider`: de largo a ancho
+
+`notas_alumnos.csv` está en formato largo. Cada alumno tiene una nota por asignatura.
+
+1. Pasa a formato ancho: una fila por alumno, una columna por asignatura.
+2. Si hay duplicados (mismo alumno/asignatura en distintos trimestres), agrega usando la media.
+3. Añade una columna `media_alumno` con el promedio de las 5 notas.
+4. Cuenta alumnos con `media_alumno >= 7`.
+
+<details>
+<summary>💡 Pista</summary>
+
+`pivot_wider(names_from = asignatura, values_from = nota, values_fn = mean)`.
+Para la media por fila: `rowMeans(across(...))` o `c_across()` dentro de `rowwise()`.
+</details>
+
+---
+
+## Ejercicio 14 — Strings con `stringr`
+
+Sobre `empleados`:
+
+1. Crea `nombre_completo` con formato `"Apellido, Nombre"`.
+2. Crea un email ficticio: `nombre.apellido@empresa.com` en **minúsculas y sin acentos**.
+3. Detecta empleados cuyo apellido empieza por `"M"` o `"R"` y **termina** en `"z"`.
+4. Cuenta cuántos hay por departamento.
+
+<details>
+<summary>💡 Pista</summary>
+
+`str_to_lower()`, `str_c()`, `str_detect()` con regex (`^[MR].*z$`).
+Acentos: en estos datos no hay, pero `stringi::stri_trans_general(x, "Latin-ASCII")` te lo resuelve si los hubiera.
+</details>
+
+---
+
+## Ejercicio 15 — Fechas con `lubridate`
+
+Con `ventas`:
+
+1. Extrae `anio`, `mes`, `dia_semana` (nombre).
+2. Calcula el importe neto **por mes**.
+3. ¿Qué día de la semana se vende más (en importe)?
+4. Crea una columna `trimestre` (`Q1`, `Q2`, ...) y muestra el importe por trimestre.
+
+<details>
+<summary>💡 Pista</summary>
+
+`year()`, `month()`, `wday(label = TRUE)`, `quarter()`. `wday()` puede devolver factores con `label = TRUE`.
+</details>
+
+---
+
+## Ejercicio 16 — Window functions: ranking dentro de grupos
+
+Sobre `ventas`:
+
+1. Para cada `categoria`, encuentra las **3 ventas con mayor `importe_neto`**.
+2. Calcula la cuota de mercado de cada producto **dentro de su categoría**: `importe_producto / importe_categoria`.
+3. Añade una columna `acumulado_cat` con la suma acumulada del importe ordenando por fecha dentro de cada categoría.
+
+<details>
+<summary>💡 Pista</summary>
+
+`slice_max(importe_neto, n = 3, by = categoria)`, `cumsum()`, `mutate()` agrupado. Para la cuota: divide por la suma del grupo (`/ sum(importe_neto)` dentro de `group_by`).
+</details>
+
+---
+
+## Ejercicio 17 — `nycflights13`: exploración y agregación
+
+Carga `flights` de `nycflights13`.
+
+1. ¿Cuántos vuelos hubo por aerolínea (`carrier`) en 2013?
+2. Para cada aerolínea, calcula:
+   - Retraso medio en salida (`dep_delay`)
+   - % de vuelos cancelados (cuando `dep_time` es `NA`)
+   - Distancia media
+3. Filtra aerolíneas con al menos 1000 vuelos y ordena por retraso medio.
+
+<details>
+<summary>💡 Pista</summary>
+
+`mean(x, na.rm = TRUE)`. Para % cancelados: `mean(is.na(dep_time)) * 100`.
+</details>
+
+---
+
+## Ejercicio 18 — `nycflights13`: joins múltiples
+
+Une `flights`, `airlines`, `airports` y `planes`.
+
+1. Crea un dataset que para cada vuelo tenga: `nombre_aerolinea`, `nombre_aeropuerto_destino`, `año_fabricacion_avion` y `fabricante`.
+2. ¿Cuál es el destino más visitado por **nombre**, no por código?
+3. Calcula el retraso medio por **fabricante de avión**, considerando solo fabricantes con al menos 500 vuelos.
+
+<details>
+<summary>💡 Pista</summary>
+
+`flights` se une con `airlines` por `carrier`, con `airports` por `dest = faa`, con `planes` por `tailnum`. Cuidado con los `NA` en `tailnum`.
+</details>
+
+---
+
+## Ejercicio 19 — `case_when` + agrupación compleja
+
+Sobre `flights`:
+
+1. Crea una columna `categoria_retraso`:
+   - `"A tiempo"` si `dep_delay <= 0`
+   - `"Leve"` si `0 < dep_delay <= 15`
+   - `"Moderado"` si `15 < dep_delay <= 60`
+   - `"Severo"` si `dep_delay > 60`
+   - `"Cancelado"` si `dep_delay` es `NA`
+2. Calcula la distribución (%) de cada categoría por aerolínea.
+3. Identifica la **aerolínea más puntual** (mayor % de "A tiempo") y la **menos puntual**.
+
+<details>
+<summary>💡 Pista</summary>
+
+`case_when(...)` evalúa de arriba a abajo. La condición para `NA` debe ir primero o usar `is.na(dep_delay) ~ "Cancelado"` antes que las comparaciones.
+</details>
+
+---
+
+## Ejercicio 20 — Reto final: análisis end-to-end
+
+Combina varios datasets y técnicas. Sobre `flights`:
+
+1. Crea un dataframe `resumen_diario` con: para cada par `(year, month, day, origin)`:
+   - número de vuelos
+   - retraso medio en salida
+   - % cancelados
+2. Une con `weather` (por `origin`, `year`, `month`, `day`, **hora media del día**) — pista: agrega `weather` por día y origen calculando promedios.
+3. ¿Existe correlación entre la **temperatura media diaria** y el **retraso medio**?
+4. Construye un gráfico (ggplot2) con scatter + línea de tendencia. Distingue por aeropuerto de origen.
+5. Realiza una pequeña regresión lineal `retraso_medio ~ temp_media + precip_total` y comenta los coeficientes.
+
+<details>
+<summary>💡 Pista</summary>
+
+`weather` viene con datos por hora; necesitas resumirlo a día (`group_by(origin, year, month, day) %>% summarise(temp_media = mean(temp, na.rm = TRUE), ...)`).
+Para `lm()` usa el dataframe ya unido. `cor(x, y, use = "complete.obs")`.
+</details>
+
+---
+
+# 🎯 Tips finales
+
+- **Si te atascas con `group_by`**, recuerda añadir `.groups = "drop"` para evitar el mensaje de agrupamiento residual.
+- **`across()` es tu amigo** cuando tengas que repetir la misma operación en muchas columnas.
+- Usa `glimpse(df)` en lugar de `str(df)` para tibbles: la salida es más legible.
+- Para depurar pipelines, parte el `%>%` y revisa intermedios con `View()` o `print(n = 20)`.
+- `?dplyr::across` y `?tidyr::pivot_longer` tienen ejemplos excelentes en su ayuda.
+
+¡Buena práctica! 🚀

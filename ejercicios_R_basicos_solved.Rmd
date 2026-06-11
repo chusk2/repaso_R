@@ -1,0 +1,1131 @@
+# 20 Ejercicios para refrescar los basics de R
+
+> Pensados para volver a tomar contacto después de un parón. Dificultad **fácil a media**. Solo R base — sin tidyverse todavía. Cada ejercicio trae **enunciado**, **pista** y **solución comentada**.
+
+## 📁 Archivos necesarios
+
+Coloca estos CSVs en tu directorio de trabajo (usa `setwd()` o el panel "Files" en RStudio):
+
+- `peliculas.csv` — 15 películas (título, año, duración, género, valoración)
+- `estudiantes.csv` — 20 estudiantes (id, nombre, edad, carrera, nota, aprobado) con algunos NAs
+- `ventas_simples.csv` — 32 filas de ventas mensuales por producto
+- `temperaturas_semana.csv` — Temperaturas de 4 ciudades por día (formato ancho)
+
+## 🚀 Setup mínimo
+
+```{r}
+# Comprueba tu directorio de trabajo
+getwd()
+
+# Si hace falta, cámbialo (ejemplo)
+# setwd("C:/Users/tu_usuario/r_basics")
+
+# Carga inicial (la usaremos en varios ejercicios)
+peliculas    <- read.csv("peliculas.csv", stringsAsFactors = FALSE)
+estudiantes  <- read.csv("estudiantes.csv", stringsAsFactors = FALSE)
+ventas       <- read.csv("ventas_simples.csv", stringsAsFactors = FALSE)
+temperaturas <- read.csv("temperaturas_semana.csv", stringsAsFactors = FALSE)
+```
+
+------------------------------------------------------------------------
+
+# Parte 1 — Vectores y tipos básicos
+
+## Ejercicio 1 — Crear vectores y operaciones
+
+1.  Crea un vector `edades` con los valores: 23, 45, 31, 28, 52, 19, 34, 41.
+```{r}
+edades <- c(23, 45, 31, 28, 52, 19, 34, 41)
+```
+
+2.  Calcula su media, mediana, mínimo, máximo y suma.
+```{r}
+cat("media:", mean(edades), "mediana:", median(edades), "mínimo:", min(edades),
+    "máximo:", max(edades), "suma:", sum(edades))
+```
+
+3.  Crea un nuevo vector `edades_meses` que tenga las edades convertidas a meses.
+```{r}
+edades_meses <- edades * 12
+edades_meses
+```
+
+4.  ¿Cuántos elementos tiene el vector?
+```{r}
+cat("número de elementos:", length(edades))
+```
+
+<details>
+
+<summary>💡 Pista</summary>
+
+Las funciones `mean()`, `median()`, `min()`, `max()`, `sum()` y `length()` son tus amigas. Multiplicar un vector por un número aplica la operación a cada elemento (vectorización).
+
+</details>
+
+------------------------------------------------------------------------
+
+## Ejercicio 2 — Indexación de vectores
+
+Dado este vector:
+
+``` {r}
+notas <- c(7.5, 4.2, 8.9, 5.5, 6.0, 9.1, 3.8, 7.0, 8.5, 6.3)
+```
+
+1.  Extrae la **tercera** nota.
+```{r}
+notas[3]
+```
+
+2.  Extrae las notas de las posiciones 2, 4 y 6.
+```{r}
+notas[c(2,4,6)]
+```
+
+3.  Extrae **todas menos la primera**.
+```{r}
+notas[-1]
+```
+
+4.  Extrae las **5 primeras** notas.
+```{r}
+notas[1:5]
+```
+
+5.  Extrae las notas que son **aprobadas** (\>= 5).
+```{r}
+notas[notas >= 5]
+```
+
+
+<details>
+
+<summary>💡 Pista</summary>
+
+Para indexar: `vector[posicion]`. Para varias posiciones usa `c()`. El signo `-` excluye. Y puedes indexar con una condición lógica: `notas[notas >= 5]`.
+
+</details>
+
+------------------------------------------------------------------------
+
+## Ejercicio 3 — Tipos de datos y comprobación
+
+Crea estas variables y comprueba el tipo de cada una con `class()`:
+
+``` {r}
+variables <- list(
+a = 42,
+b = 3.14,
+c = "Hola",
+d = TRUE,
+e = c(1L, 2L, 3L),   # la L fuerza tipo integer
+f = c("rojo", "verde", "azul")
+)
+```
+
+1.  ¿Qué clase devuelve cada una?
+```{r}
+for (var in names(variables)) {
+    cat(var, "->", variables[[var]], "-> tipo:", class(variables[[var]]), "\n" )
+}
+```
+
+2.  Convierte `a` a carácter usando `as.character()` y verifica el cambio.
+```{r}
+as.character(variables$a)
+```
+
+3.  Convierte el vector `c("1", "2", "3")` a numérico.
+```{r}
+as.numeric(c("1", "2", "3"))
+```
+
+4.  ¿Qué pasa si intentas hacer `as.numeric(c("1", "2", "tres"))`?
+```{r}
+as.numeric(c("1", "2", "tres"))
+```
+
+
+<details>
+
+<summary>💡 Pista</summary>
+
+R tiene `numeric`, `integer`, `character`, `logical`. Las funciones de conversión son `as.numeric()`, `as.character()`, `as.integer()`, `as.logical()`. Algunas conversiones producen `NA` con un *warning*.
+
+</details>
+
+------------------------------------------------------------------------
+
+## Ejercicio 4 — Secuencias y repeticiones
+
+1.  Crea una secuencia del 1 al 50 usando `:`.
+```{r}
+1:50
+```
+
+2.  Crea una secuencia del 0 al 100 **de 5 en 5** usando `seq()`.
+```{r}
+seq(1,100,5)
+```
+
+3.  Crea un vector de 12 elementos, todos con valor `"NA pendiente"`, usando `rep()`.
+```{r}
+rep("NA pendiente", times=12)
+```
+
+4.  Crea el vector `c(1, 2, 3, 1, 2, 3, 1, 2, 3)` con `rep()` (una sola llamada).
+```{r}
+rep(1:3, times = 3)
+```
+
+5.  Genera 20 números aleatorios entre 1 y 100 usando `sample()`. Fija una semilla con `set.seed(42)` para que sea reproducible.
+```{r}
+set.seed(42)
+sample(1:100, 20, replace = FALSE)
+```
+
+
+<details>
+
+<summary>💡 Pista</summary>
+
+- `seq(from, to, by = ...)` o `seq(from, to, length.out = ...)`
+- `rep(x, times = ...)` repite el vector completo. `rep(x, each = ...)` repite cada elemento.
+- `sample(x, size, replace = TRUE/FALSE)`
+
+</details>
+
+------------------------------------------------------------------------
+
+## Ejercicio 5 — Trabajando con NAs
+
+Dado el vector:
+
+``` {r}
+x <- c(5, 8, NA, 12, 3, NA, 7, 9, NA, 4)
+```
+
+1.  Calcula la media. ¿Por qué da `NA`?
+```{r}
+mean(x)
+```
+
+2.  Calcula la media **ignorando los NA**.
+```{r}
+mean(x, na.rm=T)
+```
+
+3.  ¿Cuántos NAs hay en el vector? Usa `is.na()` y `sum()`.
+```{r}
+cat("Hay", sum(is.na(x)), "valores NA en el vector x.")
+```
+
+4.  Crea un nuevo vector `x_limpio` sin los NAs.
+5.  Sustituye los NAs por 0 en el vector original.
+```{r}
+x_limpio <- x[!is.na(x)]
+x_limpio
+```
+
+<details>
+
+<summary>💡 Pista</summary>
+
+`is.na(x)` devuelve un vector lógico. La mayoría de funciones de resumen aceptan el argumento `na.rm = TRUE`. Para filtrar: `x[!is.na(x)]`. Para reemplazar: `x[is.na(x)] <- 0`.
+
+</details>
+
+------------------------------------------------------------------------
+
+# Parte 2 — Estructuras: factores, listas y data frames
+
+## Ejercicio 6 — Factores
+
+Tienes un vector con tallas de camisetas:
+
+``` {r}
+tallas <- c("M", "L", "S", "XL", "M", "M", "L", "S", "XL", "L", "M", "S")
+```
+
+1.  Conviértelo en un factor.
+```{r}
+tallas <- as.factor(tallas)
+```
+
+2.  ¿Cuáles son los niveles (`levels`)?
+```{r}
+levels(tallas)
+```
+
+3.  Cuenta cuántos hay de cada talla usando `table()`.
+```{r}
+table(tallas)
+```
+
+4.  Reordena los niveles para que sigan el orden lógico: `S < M < L < XL`.
+Conviértelo en un factor **ordenado**.
+```{r}
+tallas <- factor(tallas, levels = c("S", "M", "L", "XL"), ordered = TRUE)
+tallas
+```
+
+5.  Comprueba: ¿es `tallas[1] > tallas[3]`? (Sólo funcionará si el factor es ordenado.)
+```{r}
+tallas[1] > tallas[3]
+```
+
+
+<details>
+
+<summary>💡 Pista</summary>
+
+`factor(x)` crea el factor. `factor(x, levels = ..., ordered = TRUE)` lo crea ordenado. `levels()` te muestra los niveles. `table()` cuenta frecuencias.
+
+</details>
+
+------------------------------------------------------------------------
+
+## Ejercicio 7 — Listas
+
+Crea una lista que represente a una persona con: - `nombre`: "Carla" - `edad`: 29 - `hobbies`: vector con "leer", "correr", "cocinar" - `tiene_mascotas`: TRUE
+
+1.  Crea la lista con `list()`, dando nombre a cada elemento.
+```{r}
+persona = list(
+    nombre = "Carla",
+    edad = 29,
+    hobbies = c("leer", "correr", "cocinar"),
+    tiene_mascotas = TRUE
+)
+```
+
+2.  Accede al nombre de la persona usando `$`.
+```{r}
+persona$nombre
+```
+
+3.  Accede al segundo hobby (`"correr"`) usando indexación doble `[[ ]]`.
+```{r}
+persona[["hobbies"]][2]
+```
+
+4.  Añade un nuevo elemento `ciudad` con valor `"Málaga"`.
+```{r}
+persona$ciudad <- "Málaga"
+```
+
+5.  Comprueba cuántos elementos tiene la lista con `length()`.
+```{r}
+length(persona)
+```
+
+
+<details>
+
+<summary>💡 Pista</summary>
+
+- `lista$elemento` y `lista[["elemento"]]` devuelven el contenido (el vector tal cual).
+- `lista["elemento"]` devuelve una **sublista** (otro objeto lista).
+- Para añadir: `lista$nuevo <- valor`.
+
+</details>
+
+------------------------------------------------------------------------
+
+## Ejercicio 8 — Crear un data frame desde cero
+
+Crea un data frame `libros` con estas columnas:
+
+| titulo     | autor     | paginas | leido |
+|------------|-----------|---------|-------|
+| 1984       | Orwell    | 328     | TRUE  |
+| Sapiens    | Harari    | 443     | TRUE  |
+| Dune       | Herbert   | 688     | FALSE |
+| El Quijote | Cervantes | 863     | FALSE |
+| Hobbit     | Tolkien   | 310     | TRUE  |
+
+1.  Créalo con `data.frame()`.
+```{r}
+libros <- data.frame(
+  titulo = c("1984", "Sapiens", "Dune", "El Quijote", "Hobbit"),
+  autor  = c("Orwell", "Harari", "Herbert", "Cervantes", "Tolkien"),
+  paginas = c(328, 443, 688, 863, 310),
+  leido  = c(TRUE, TRUE, FALSE, FALSE, TRUE),
+  stringsAsFactors = FALSE
+)
+```
+
+2.  Muestra su estructura con `str()` y su resumen con `summary()`.
+```{r}
+str(libros)
+```
+```{r}
+summary(libros)
+```
+
+
+3.  Cuántas filas y columnas tiene (`nrow()`, `ncol()`, `dim()`).
+```{r}
+cat("El dataframe `libros` contiene", nrow(libros), "filas y", ncol(libros), "columnas.")
+```
+
+4.  Accede a la columna `paginas`.
+```{r}
+libros$paginas
+```
+
+5.  Añade una columna nueva `paginas_por_dia` que asuma que se lee cada libro en 30 días (división vectorizada).
+```{r}
+libros$paginas_por_dia <- round(libros$paginas / 30, 2)
+libros
+```
+
+
+<details>
+
+<summary>💡 Pista</summary>
+
+`data.frame(col1 = ..., col2 = ..., stringsAsFactors = FALSE)`. Para añadir columna: `df$nueva_col <- ...`.
+
+</details>
+
+------------------------------------------------------------------------
+
+## Ejercicio 9 — Lectura de CSV y exploración
+
+Carga el archivo `peliculas.csv` y responde:
+```{r}
+movies <- read.csv("movies.csv")
+```
+
+1.  ¿Cuántas filas y columnas tiene?
+```{r}
+dim(movies)
+```
+
+2.  Muestra las **6 primeras filas** y las **3 últimas**.
+```{r}
+head(movies, 6)
+```
+```{r}
+tail(movies, 3)
+```
+
+3.  ¿Cuáles son los **nombres** de las columnas?
+```{r}
+names(movies)
+```
+
+4.  Muestra solo la columna `titulo`.
+```{r}
+movies$title
+```
+
+5.  ¿Qué clase tiene la columna `valoracion`?
+```{r}
+class(movies$rating)
+```
+
+
+<details>
+
+<summary>💡 Pista</summary>
+
+`read.csv()`, `head()`, `tail()`, `names()` (o `colnames()`), `df$columna`, `class()`.
+
+</details>
+
+------------------------------------------------------------------------
+
+## Ejercicio 10 — Indexación de data frames
+
+Sigue con `peliculas`. Las dos formas de indexar son `df[fila, columna]` y `df$columna`.
+
+1.  Extrae la **fila 5** completa.
+```{r}
+movies[5,]
+```
+
+2.  Extrae la columna `genero` (de dos maneras distintas: con `$` y con `[, ]`).
+```{r}
+movies$genre
+```
+```{r}
+movies[, "genre"]
+```
+
+
+3.  Extrae el valor de la **fila 3, columna 2** (el año de "Forrest Gump").
+```{r}
+movies[3,2]
+```
+
+4.  Extrae las columnas `titulo` y `valoracion` para todas las filas.
+```{r}
+movies[,c("title", "rating")]
+```
+
+5.  Extrae las filas 1, 5 y 10, sólo con columnas `titulo` y `año`.
+```{r}
+movies[c(1,5,10), c("title", "year")]
+```
+
+
+<details>
+
+<summary>💡 Pista</summary>
+
+`df[fila, columna]` deja la parte que dejas en blanco como "todas". `df[, c("col1", "col2")]` selecciona varias columnas por nombre.
+
+</details>
+
+------------------------------------------------------------------------
+
+## Ejercicio 11 — Filtrado con condiciones
+
+Con `peliculas`, responde usando indexación lógica:
+
+1.  Películas con valoración **mayor o igual a 8.5**.
+```{r}
+movies[movies$rating >= 8.5,]
+```
+
+2.  Películas estrenadas **después del año 2000**.
+```{r}
+movies[movies$year > 2E3, ]
+```
+
+3.  Películas de género `"Drama"`.
+4.  Películas de género `"Drama"` **Y** con valoración mayor a 8.7.
+5.  Películas que duran **entre 100 y 150 minutos** (inclusive).
+
+<details>
+
+<summary>💡 Pista</summary>
+
+Usa `df[condicion, ]`. Los operadores son `==`, `!=`, `<`, `>`, `<=`, `>=`, `&` (AND), `|` (OR). Para rangos: `x >= a & x <= b`.
+
+</details>
+
+------------------------------------------------------------------------
+
+## Ejercicio 12 — Ordenar un data frame
+
+Sigue con `peliculas`:
+
+1.  Ordena las películas de **mayor a menor** valoración. Guarda el resultado en `pel_ord`.
+2.  Ordena por **año ascendente**.
+3.  Ordena por género (alfabético) y, dentro de cada género, por valoración descendente.
+
+<details>
+
+<summary>💡 Pista</summary>
+
+`order(x)` devuelve los **índices** que ordenarían el vector. Para descendente: `order(x, decreasing = TRUE)` o `order(-x)` si es numérico. Para ordenar dos columnas, `order(col1, -col2)`.
+
+</details>
+
+------------------------------------------------------------------------
+
+# Parte 3 — Control de flujo y funciones
+
+## Ejercicio 13 — `if / else`
+
+Escribe un bloque que, dado un número `x`, imprima: - `"positivo"` si es mayor que 0 - `"negativo"` si es menor que 0 - `"cero"` si es exactamente 0
+
+Pruébalo con `x <- 5`, `x <- -3`, y `x <- 0`.
+
+<details>
+
+<summary>💡 Pista</summary>
+
+Sintaxis:
+
+``` r
+if (condicion) {
+  ...
+} else if (otra_condicion) {
+  ...
+} else {
+  ...
+}
+```
+
+</details>
+
+------------------------------------------------------------------------
+
+## Ejercicio 14 — `ifelse()` vectorizado
+
+Tienes el vector de notas:
+
+``` r
+notas <- c(4.5, 7.2, 9.1, 3.0, 5.5, 8.8, 6.0, 4.9, 7.5, 6.7)
+```
+
+1.  Crea un vector `resultado` que para cada nota diga `"Aprobado"` si es ≥ 5, y `"Suspenso"` en caso contrario. Usa `ifelse()` (¡vectorizado!, no necesitas bucle).
+2.  Crea un vector `nivel` que diga `"Bajo"` si la nota es \< 5, `"Medio"` si está entre 5 y 7.49, y `"Alto"` si es ≥ 7.5. Para esto puedes anidar dos `ifelse()`.
+
+<details>
+
+<summary>💡 Pista</summary>
+
+`ifelse(condicion, valor_si_TRUE, valor_si_FALSE)`. Funciona elemento a elemento. Puedes anidar uno dentro del valor `valor_si_FALSE`.
+
+</details>
+
+------------------------------------------------------------------------
+
+## Ejercicio 15 — Bucle `for`
+
+1.  Escribe un bucle `for` que imprima los números del 1 al 10.
+2.  Escribe un bucle que recorra el vector `c("manzana", "pera", "uva", "kiwi")` y, para cada fruta, imprima `"Me gusta la <fruta>"`.
+3.  Escribe un bucle que calcule la suma de los cuadrados del 1 al 20 (es decir, 1² + 2² + ... + 20²). Guarda el resultado en una variable `total`.
+
+<details>
+
+<summary>💡 Pista</summary>
+
+``` r
+for (i in 1:10) {
+  # cuerpo
+}
+```
+
+Recuerda inicializar `total <- 0` antes del bucle. Usa `paste()` o `paste0()` para concatenar texto.
+
+</details>
+
+------------------------------------------------------------------------
+
+## Ejercicio 16 — Escribir tus propias funciones
+
+1.  Escribe una función `area_rectangulo(base, altura)` que devuelva el área.
+2.  Escribe una función `es_par(n)` que devuelva `TRUE` si `n` es par y `FALSE` si es impar.
+3.  Escribe una función `saludar(nombre, idioma = "es")` que devuelva `"Hola, <nombre>"` si `idioma = "es"` y `"Hello, <nombre>"` si `idioma = "en"`. Que `"es"` sea el valor por defecto.
+
+<details>
+
+<summary>💡 Pista</summary>
+
+Sintaxis:
+
+``` r
+mi_funcion <- function(arg1, arg2 = valor_defecto) {
+  # cuerpo
+  return(resultado)   # el return es opcional: R devuelve el último valor
+}
+```
+
+El operador módulo en R es `%%`. Por ejemplo `10 %% 2` devuelve `0`.
+
+</details>
+
+------------------------------------------------------------------------
+
+# Parte 4 — Aplicación con CSVs reales
+
+## Ejercicio 17 — Análisis de estudiantes
+
+Carga `estudiantes.csv` y responde:
+
+1.  ¿Cuántos estudiantes hay en total?
+2.  ¿Cuántos NAs hay en la columna `nota_final`?
+3.  ¿Cuál es la media de `nota_final` ignorando los NAs?
+4.  ¿Cuántos estudiantes hay de cada carrera? (`table()`)
+5.  Muestra solo los estudiantes que **aprobaron** (`aprobado == TRUE`) y tienen menos de 20 años.
+
+<details>
+
+<summary>💡 Pista</summary>
+
+`nrow()`, `sum(is.na(...))`, `mean(..., na.rm = TRUE)`, `table()`, indexación con `&`.
+
+</details>
+
+------------------------------------------------------------------------
+
+## Ejercicio 18 — Cálculos con `ventas_simples.csv`
+
+Carga `ventas_simples.csv`:
+
+1.  Crea una nueva columna `total` = `unidades * precio_unidad`.
+2.  ¿Cuál es la **suma total** facturada (suma de la columna `total`)?
+3.  ¿Cuál es la fila con la venta de **mayor** importe? (`which.max()`)
+4.  Filtra las filas del mes `"Marzo"`.
+5.  Calcula el **total facturado por mes** usando `aggregate()`.
+
+<details>
+
+<summary>💡 Pista</summary>
+
+`which.max(x)` devuelve la **posición** del máximo. Para agregar:
+
+``` r
+aggregate(total ~ mes, data = ventas, FUN = sum)
+```
+
+La fórmula `y ~ x` significa "y agrupado por x".
+
+</details>
+
+------------------------------------------------------------------------
+
+## Ejercicio 19 — `apply()` con la tabla de temperaturas
+
+Carga `temperaturas_semana.csv`. Las columnas numéricas son `Madrid`, `Barcelona`, `Sevilla`, `Valencia`. La columna `dia` es texto.
+
+1.  Calcula la temperatura **media de cada ciudad** (por columna). Usa `apply(..., MARGIN = 2, FUN = mean)` sobre las columnas numéricas.
+2.  Calcula la temperatura **media de cada día** (por fila), `MARGIN = 1`.
+3.  ¿Cuál fue la temperatura **máxima** registrada en cada ciudad?
+4.  ¿En qué día se alcanzó la temperatura **máxima** en Sevilla? (combina `which.max()` con la columna `dia`).
+
+<details>
+
+<summary>💡 Pista</summary>
+
+`apply(matriz_o_df, MARGIN, FUN)`: - `MARGIN = 1` → recorre filas - `MARGIN = 2` → recorre columnas
+
+Antes de aplicar, selecciona solo las columnas numéricas: `temperaturas[, 2:5]`.
+
+</details>
+
+------------------------------------------------------------------------
+
+## Ejercicio 20 — Pequeño análisis exploratorio
+
+Carga `peliculas.csv` y responde de un tirón (usando lo aprendido):
+
+1.  ¿Cuál es la duración media, mediana y máxima de las películas?
+2.  ¿Cuántas películas hay de cada género?
+3.  ¿Cuál es la película mejor valorada?
+4.  ¿Qué porcentaje de películas son posteriores al año 2000?
+5.  Crea una columna nueva `decada` que valga `"70s"`, `"80s"`, `"90s"`, `"2000s"`, `"2010s"` según el año. Pista: usa `floor(anio / 10) * 10` o `cut()`.
+6.  Calcula la valoración media **por década** con `aggregate()`.
+
+<details>
+
+<summary>💡 Pista para la 5</summary>
+
+Opción A (con `paste0`):
+
+``` r
+peliculas$decada <- paste0(floor(peliculas$anio / 10) * 10, "s")
+```
+
+Opción B (con `cut`), que te da rangos cerrados:
+
+``` r
+peliculas$decada <- cut(peliculas$anio,
+                        breaks = c(1969, 1979, 1989, 1999, 2009, 2019, 2029),
+                        labels = c("70s", "80s", "90s", "2000s", "2010s", "2020s"))
+```
+
+</details>
+
+------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------
+
+# 📝 Soluciones
+
+## ✅ Solución — Ejercicio 1 — Crear vectores y operaciones
+
+``` r
+edades <- c(23, 45, 31, 28, 52, 19, 34, 41)
+
+mean(edades)    # 34.125
+median(edades)  # 32.5
+min(edades)     # 19
+max(edades)     # 52
+sum(edades)     # 273
+
+edades_meses <- edades * 12
+edades_meses
+
+length(edades)  # 8
+```
+
+------------------------------------------------------------------------
+
+## ✅ Solución — Ejercicio 2 — Indexación de vectores
+
+``` r
+notas <- c(7.5, 4.2, 8.9, 5.5, 6.0, 9.1, 3.8, 7.0, 8.5, 6.3)
+
+notas[3]              # 8.9
+notas[c(2, 4, 6)]     # 4.2 5.5 9.1
+notas[-1]             # todas menos la primera
+notas[1:5]            # las 5 primeras
+notas[notas >= 5]     # solo aprobadas
+```
+
+------------------------------------------------------------------------
+
+## ✅ Solución — Ejercicio 3 — Tipos de datos y comprobación
+
+``` r
+class(a)  # "numeric"
+class(b)  # "numeric"
+class(c)  # "character"
+class(d)  # "logical"
+class(e)  # "integer"
+class(f)  # "character"
+
+as.character(a)            # "42"
+as.numeric(c("1", "2", "3"))  # 1 2 3
+
+as.numeric(c("1", "2", "tres"))
+# Devuelve: 1  2 NA, con un warning de "NAs introduced by coercion"
+```
+
+------------------------------------------------------------------------
+
+## ✅ Solución — Ejercicio 4 — Secuencias y repeticiones
+
+``` r
+1:50
+
+seq(0, 100, by = 5)
+# 0 5 10 15 ... 100
+
+rep("NA pendiente", times = 12)
+
+rep(c(1, 2, 3), times = 3)
+# 1 2 3 1 2 3 1 2 3
+
+set.seed(42)
+sample(1:100, size = 20, replace = TRUE)
+```
+
+------------------------------------------------------------------------
+
+## ✅ Solución — Ejercicio 5 — Trabajando con NAs
+
+``` r
+x <- c(5, 8, NA, 12, 3, NA, 7, 9, NA, 4)
+
+mean(x)                  # NA porque hay NAs en el vector
+mean(x, na.rm = TRUE)    # 6.857143
+
+sum(is.na(x))            # 3
+
+x_limpio <- x[!is.na(x)]
+x_limpio                 # 5 8 12 3 7 9 4
+
+x[is.na(x)] <- 0
+x                        # 5 8 0 12 3 0 7 9 0 4
+```
+
+------------------------------------------------------------------------
+
+## ✅ Solución — Ejercicio 6 — Factores
+
+``` r
+tallas <- c("M", "L", "S", "XL", "M", "M", "L", "S", "XL", "L", "M", "S")
+
+f_tallas <- factor(tallas)
+levels(f_tallas)     # "L" "M" "S" "XL" (orden alfabético por defecto)
+table(f_tallas)
+
+# Factor ordenado con el orden correcto
+f_tallas <- factor(tallas, levels = c("S", "M", "L", "XL"), ordered = TRUE)
+levels(f_tallas)     # "S" "M" "L" "XL"
+
+f_tallas[1] > f_tallas[3]   # TRUE: "M" > "S"
+```
+
+------------------------------------------------------------------------
+
+## ✅ Solución — Ejercicio 7 — Listas
+
+``` r
+persona <- list(
+  nombre = "Carla",
+  edad = 29,
+  hobbies = c("leer", "correr", "cocinar"),
+  tiene_mascotas = TRUE
+)
+
+persona$nombre              # "Carla"
+persona[["hobbies"]][2]     # "correr"
+
+persona$ciudad <- "Málaga"
+length(persona)             # 5
+```
+
+------------------------------------------------------------------------
+
+## ✅ Solución — Ejercicio 8 — Crear un data frame desde cero
+
+``` r
+libros <- data.frame(
+  titulo = c("1984", "Sapiens", "Dune", "El Quijote", "Hobbit"),
+  autor = c("Orwell", "Harari", "Herbert", "Cervantes", "Tolkien"),
+  paginas = c(328, 443, 688, 863, 310),
+  leido = c(TRUE, TRUE, FALSE, FALSE, TRUE),
+  stringsAsFactors = FALSE
+)
+
+str(libros)
+summary(libros)
+nrow(libros)   # 5
+ncol(libros)   # 4
+dim(libros)    # 5 4
+
+libros$paginas
+
+libros$paginas_por_dia <- libros$paginas / 30
+libros
+```
+
+------------------------------------------------------------------------
+
+## ✅ Solución — Ejercicio 9 — Lectura de CSV y exploración
+
+```{r}
+movies <- read.csv("movies.csv", stringsAsFactors = FALSE)
+
+dim(peliculas)         # 15 5
+head(peliculas, 6)
+tail(peliculas, 3)
+names(peliculas)
+peliculas$titulo
+class(peliculas$valoracion)   # "numeric"
+```
+
+------------------------------------------------------------------------
+
+## ✅ Solución — Ejercicio 10 — Indexación de data frames
+
+``` r
+peliculas[5, ]                         # fila 5 completa
+
+peliculas$genero                       # con $
+peliculas[, "genero"]                  # con índice
+
+peliculas[3, 2]                        # 1994
+
+peliculas[, c("titulo", "valoracion")]
+
+peliculas[c(1, 5, 10), c("titulo", "anio")]
+```
+
+------------------------------------------------------------------------
+
+## ✅ Solución — Ejercicio 11 — Filtrado con condiciones
+
+``` r
+peliculas[peliculas$valoracion >= 8.5, ]
+
+peliculas[peliculas$anio > 2000, ]
+
+peliculas[peliculas$genero == "Drama", ]
+
+peliculas[peliculas$genero == "Drama" & peliculas$valoracion > 8.7, ]
+
+peliculas[peliculas$duracion_min >= 100 & peliculas$duracion_min <= 150, ]
+```
+
+------------------------------------------------------------------------
+
+## ✅ Solución — Ejercicio 12 — Ordenar un data frame
+
+``` r
+pel_ord <- peliculas[order(peliculas$valoracion, decreasing = TRUE), ]
+head(pel_ord)
+
+peliculas[order(peliculas$anio), ]
+
+peliculas[order(peliculas$genero, -peliculas$valoracion), ]
+```
+
+------------------------------------------------------------------------
+
+## ✅ Solución — Ejercicio 13 — `if / else`
+
+``` r
+x <- 5  # cambia el valor para probar
+
+if (x > 0) {
+  print("positivo")
+} else if (x < 0) {
+  print("negativo")
+} else {
+  print("cero")
+}
+```
+
+------------------------------------------------------------------------
+
+## ✅ Solución — Ejercicio 14 — `ifelse()` vectorizado
+
+``` r
+notas <- c(4.5, 7.2, 9.1, 3.0, 5.5, 8.8, 6.0, 4.9, 7.5, 6.7)
+
+resultado <- ifelse(notas >= 5, "Aprobado", "Suspenso")
+resultado
+
+nivel <- ifelse(notas < 5, "Bajo",
+         ifelse(notas < 7.5, "Medio", "Alto"))
+nivel
+```
+
+------------------------------------------------------------------------
+
+## ✅ Solución — Ejercicio 15 — Bucle `for`
+
+``` r
+# 1
+for (i in 1:10) {
+  print(i)
+}
+
+# 2
+frutas <- c("manzana", "pera", "uva", "kiwi")
+for (fruta in frutas) {
+  print(paste("Me gusta la", fruta))
+}
+
+# 3
+total <- 0
+for (i in 1:20) {
+  total <- total + i^2
+}
+total   # 2870
+
+# Alternativa vectorizada (en R los bucles muchas veces se evitan):
+sum((1:20)^2)
+```
+
+------------------------------------------------------------------------
+
+## ✅ Solución — Ejercicio 16 — Escribir tus propias funciones
+
+``` r
+area_rectangulo <- function(base, altura) {
+  base * altura
+}
+area_rectangulo(5, 3)   # 15
+
+es_par <- function(n) {
+  n %% 2 == 0
+}
+es_par(4)   # TRUE
+es_par(7)   # FALSE
+
+saludar <- function(nombre, idioma = "es") {
+  if (idioma == "es") {
+    paste0("Hola, ", nombre)
+  } else if (idioma == "en") {
+    paste0("Hello, ", nombre)
+  } else {
+    "Idioma no soportado"
+  }
+}
+saludar("Marta")              # "Hola, Marta"
+saludar("Marta", "en")        # "Hello, Marta"
+```
+
+------------------------------------------------------------------------
+
+## ✅ Solución — Ejercicio 17 — Análisis de estudiantes
+
+``` r
+estudiantes <- read.csv("estudiantes.csv", stringsAsFactors = FALSE)
+
+nrow(estudiantes)                                # 20
+sum(is.na(estudiantes$nota_final))               # 3
+mean(estudiantes$nota_final, na.rm = TRUE)       # ~7.55
+table(estudiantes$carrera)
+
+estudiantes[estudiantes$aprobado == TRUE & estudiantes$edad < 20, ]
+```
+
+------------------------------------------------------------------------
+
+## ✅ Solución — Ejercicio 18 — Cálculos con `ventas_simples.csv`
+
+``` r
+ventas <- read.csv("ventas_simples.csv", stringsAsFactors = FALSE)
+
+ventas$total <- ventas$unidades * ventas$precio_unidad
+head(ventas)
+
+sum(ventas$total)
+
+ventas[which.max(ventas$total), ]
+
+ventas[ventas$mes == "Marzo", ]
+
+aggregate(total ~ mes, data = ventas, FUN = sum)
+```
+
+------------------------------------------------------------------------
+
+## ✅ Solución — Ejercicio 19 — `apply()` con la tabla de temperaturas
+
+``` r
+temperaturas <- read.csv("temperaturas_semana.csv", stringsAsFactors = FALSE)
+
+# Sólo las columnas numéricas
+temp_num <- temperaturas[, 2:5]
+
+# 1. Media por ciudad (columnas)
+apply(temp_num, MARGIN = 2, FUN = mean)
+
+# 2. Media por día (filas)
+media_dia <- apply(temp_num, MARGIN = 1, FUN = mean)
+data.frame(dia = temperaturas$dia, media = media_dia)
+
+# 3. Máximo por ciudad
+apply(temp_num, MARGIN = 2, FUN = max)
+
+# 4. Día con la temperatura máxima en Sevilla
+pos <- which.max(temperaturas$Sevilla)
+temperaturas$dia[pos]
+```
+
+------------------------------------------------------------------------
+
+## ✅ Solución — Ejercicio 20 — Pequeño análisis exploratorio
+
+``` r
+peliculas <- read.csv("peliculas.csv", stringsAsFactors = FALSE)
+
+# 1
+mean(peliculas$duracion_min)
+median(peliculas$duracion_min)
+max(peliculas$duracion_min)
+
+# 2
+table(peliculas$genero)
+
+# 3
+peliculas[which.max(peliculas$valoracion), ]
+
+# 4
+mean(peliculas$anio > 2000) * 100   # mean de TRUE/FALSE es proporción
+
+# 5
+peliculas$decada <- paste0(floor(peliculas$anio / 10) * 10, "s")
+head(peliculas)
+
+# 6
+aggregate(valoracion ~ decada, data = peliculas, FUN = mean)
+```
+
+------------------------------------------------------------------------
+
+# 🎯 Consejos finales
+
+- **Ejecuta línea a línea** (Ctrl+Enter en RStudio) y mira el resultado en consola; es la mejor forma de aprender.
+- Usa `?nombre_funcion` (por ejemplo `?aggregate`) para ver la ayuda — siempre tiene ejemplos al final.
+- Si algo da `NA` inesperado, sospecha de NAs en los datos y prueba `na.rm = TRUE`.
+- Cuando filtres con condiciones, recuerda que `&` y `|` son los operadores **vectorizados** (NO uses `&&` ni `||` para filtrar columnas, esos son para escalares).
+- En `read.csv()`, `stringsAsFactors = FALSE` te evita sorpresas con factores; en R ≥ 4.0 ya es el valor por defecto, pero no está de más ponerlo.
+
+Cuando termines estos, dime y subimos un nivel con `dplyr` y `ggplot2`. ¡Ánimo! 💪
