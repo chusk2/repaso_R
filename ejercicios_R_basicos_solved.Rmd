@@ -15,16 +15,16 @@ Coloca estos CSVs en tu directorio de trabajo (usa `setwd()` o el panel "Files" 
 
 ```{r}
 # Comprueba tu directorio de trabajo
-getwd()
+#getwd()
 
 # Si hace falta, cámbialo (ejemplo)
 # setwd("C:/Users/tu_usuario/r_basics")
 
 # Carga inicial (la usaremos en varios ejercicios)
-peliculas    <- read.csv("peliculas.csv", stringsAsFactors = FALSE)
-estudiantes  <- read.csv("estudiantes.csv", stringsAsFactors = FALSE)
-ventas       <- read.csv("ventas_simples.csv", stringsAsFactors = FALSE)
-temperaturas <- read.csv("temperaturas_semana.csv", stringsAsFactors = FALSE)
+#peliculas    <- read.csv("peliculas.csv", stringsAsFactors = FALSE)
+#estudiantes  <- read.csv("estudiantes.csv", stringsAsFactors = FALSE)
+#ventas       <- read.csv("ventas_simples.csv", stringsAsFactors = FALSE)
+#temperaturas <- read.csv("temperaturas_semana.csv", stringsAsFactors = FALSE)
 ```
 
 ------------------------------------------------------------------------
@@ -497,8 +497,20 @@ movies[movies$year > 2E3, ]
 ```
 
 3.  Películas de género `"Drama"`.
+```{r}
+movies[movies$genre == "Drama",]
+```
+
 4.  Películas de género `"Drama"` **Y** con valoración mayor a 8.7.
+```{r}
+movies[movies$genre == "Drama" & movies$rating > 8.7, ]
+```
+
 5.  Películas que duran **entre 100 y 150 minutos** (inclusive).
+```{r}
+movies[movies$duration_min >= 100 & movies$duration_min <= 150, ]
+```
+
 
 <details>
 
@@ -515,8 +527,21 @@ Usa `df[condicion, ]`. Los operadores son `==`, `!=`, `<`, `>`, `<=`, `>=`, `&` 
 Sigue con `peliculas`:
 
 1.  Ordena las películas de **mayor a menor** valoración. Guarda el resultado en `pel_ord`.
+```{r}
+pel_ord <- movies[order(movies$rating, decreasing=TRUE), ]
+pel_ord
+```
+
 2.  Ordena por **año ascendente**.
+```{r}
+movies[order(movies$year),]
+```
+
 3.  Ordena por género (alfabético) y, dentro de cada género, por valoración descendente.
+```{r}
+movies[order(movies$genre, -movies$rating),]
+```
+
 
 <details>
 
@@ -535,6 +560,18 @@ Sigue con `peliculas`:
 Escribe un bloque que, dado un número `x`, imprima: - `"positivo"` si es mayor que 0 - `"negativo"` si es menor que 0 - `"cero"` si es exactamente 0
 
 Pruébalo con `x <- 5`, `x <- -3`, y `x <- 0`.
+```{r}
+get_sign <- function (x) {
+    if (x>0) {"positivo"}
+    else if (x<0) {"negativo"}
+    else {"cero"}
+}
+
+for (i in c(5,-3,0)) {
+    cat(i, "es", get_sign(i), "\n")
+    }
+```
+
 
 <details>
 
@@ -560,12 +597,29 @@ if (condicion) {
 
 Tienes el vector de notas:
 
-``` r
+``` {r}
 notas <- c(4.5, 7.2, 9.1, 3.0, 5.5, 8.8, 6.0, 4.9, 7.5, 6.7)
 ```
 
 1.  Crea un vector `resultado` que para cada nota diga `"Aprobado"` si es ≥ 5, y `"Suspenso"` en caso contrario. Usa `ifelse()` (¡vectorizado!, no necesitas bucle).
+
+```{r}
+classify <- function (x) {
+    ifelse(x >= 5, "Aprobado", "Suspenso")
+}
+
+classify(notas)
+```
+
 2.  Crea un vector `nivel` que diga `"Bajo"` si la nota es \< 5, `"Medio"` si está entre 5 y 7.49, y `"Alto"` si es ≥ 7.5. Para esto puedes anidar dos `ifelse()`.
+
+```{r}
+classify_mark <- function (x) ifelse(x <5, "Bajo",
+                                     ifelse(x >=5 & x <8, "Medio", "Alto")
+                                     )
+classify_mark(notas)
+```
+
 
 <details>
 
@@ -580,8 +634,29 @@ notas <- c(4.5, 7.2, 9.1, 3.0, 5.5, 8.8, 6.0, 4.9, 7.5, 6.7)
 ## Ejercicio 15 — Bucle `for`
 
 1.  Escribe un bucle `for` que imprima los números del 1 al 10.
+
+```{r}
+for (i in 1:10) cat(i, " ")
+```
+
 2.  Escribe un bucle que recorra el vector `c("manzana", "pera", "uva", "kiwi")` y, para cada fruta, imprima `"Me gusta la <fruta>"`.
+
+```{r}
+for (fruit in c("manzana", "pera", "uva", "kiwi")) {
+    cat("Me gusta",
+        ifelse(fruit == "kiwi", "el", "la"),
+        fruit, "\n")
+}
+```
+
 3.  Escribe un bucle que calcule la suma de los cuadrados del 1 al 20 (es decir, 1² + 2² + ... + 20²). Guarda el resultado en una variable `total`.
+
+```{r}
+total <- 0
+for (i in 1:20) {total <- total + i**2}
+total
+```
+
 
 <details>
 
@@ -602,8 +677,36 @@ Recuerda inicializar `total <- 0` antes del bucle. Usa `paste()` o `paste0()` pa
 ## Ejercicio 16 — Escribir tus propias funciones
 
 1.  Escribe una función `area_rectangulo(base, altura)` que devuelva el área.
+
+```{r}
+area_rectangulo <- function (base, altura) base * altura
+
+area_rectangulo(2,6)
+```
+
 2.  Escribe una función `es_par(n)` que devuelva `TRUE` si `n` es par y `FALSE` si es impar.
+
+```{r}
+es_par <- Vectorize(function (n) n %% 2 == 0)
+
+es_par(c(10,23,45,68))
+```
+
 3.  Escribe una función `saludar(nombre, idioma = "es")` que devuelva `"Hola, <nombre>"` si `idioma = "es"` y `"Hello, <nombre>"` si `idioma = "en"`. Que `"es"` sea el valor por defecto.
+
+```{r}
+saludar <- function (nombre, idioma="es") {
+    if (idioma == "es") cat("Hola,", nombre)
+    else if (idioma == "en") cat("Hello,", nombre)
+    else cat("Idioma no válido.")
+}
+saludar("Dani")
+cat("\n")
+saludar("Pedro", "en")
+cat("\n")
+saludar("Pedro", "de")
+```
+
 
 <details>
 
