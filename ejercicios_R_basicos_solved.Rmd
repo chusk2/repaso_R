@@ -1114,14 +1114,14 @@ libros
 ## ✅ Solución — Ejercicio 9 — Lectura de CSV y exploración
 
 ```{r}
-movies <- read.csv("movies.csv", stringsAsFactors = FALSE)
+movies <- read.csv("csv/movies.csv", stringsAsFactors = FALSE)
 
-dim(peliculas)         # 15 5
-head(peliculas, 6)
-tail(peliculas, 3)
-names(peliculas)
-peliculas$titulo
-class(peliculas$valoracion)   # "numeric"
+dim(movies)         # 15 5
+head(movies, 6)
+tail(movies, 3)
+names(movies)
+movies$title
+class(movies$rating)   # "numeric"
 ```
 
 ------------------------------------------------------------------------
