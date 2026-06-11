@@ -733,11 +733,36 @@ El operador módulo en R es `%%`. Por ejemplo `10 %% 2` devuelve `0`.
 
 Carga `estudiantes.csv` y responde:
 
+```{r}
+estudiantes <- read.csv("csv/estudiantes.csv")
+estudiantes$aprobado <- estudiantes$aprobado == "True"
+```
+
 1.  ¿Cuántos estudiantes hay en total?
+```{r}
+nrow(estudiantes)
+```
+
 2.  ¿Cuántos NAs hay en la columna `nota_final`?
+```{r}
+sum(is.na(estudiantes$nota_final))
+```
+
 3.  ¿Cuál es la media de `nota_final` ignorando los NAs?
+```{r}
+round( mean(estudiantes$nota_final, na.rm = T), 2)
+```
+
 4.  ¿Cuántos estudiantes hay de cada carrera? (`table()`)
+```{r}
+sort( table(estudiantes$carrera), decreasing = TRUE )
+```
+
 5.  Muestra solo los estudiantes que **aprobaron** (`aprobado == TRUE`) y tienen menos de 20 años.
+
+```{r}
+estudiantes[estudiantes$aprobado == 1 & estudiantes$edad < 20, ]
+```
 
 <details>
 
@@ -752,12 +777,39 @@ Carga `estudiantes.csv` y responde:
 ## Ejercicio 18 — Cálculos con `ventas_simples.csv`
 
 Carga `ventas_simples.csv`:
+```{r}
+ventas <- read.csv("csv/ventas_simples.csv")
+```
 
 1.  Crea una nueva columna `total` = `unidades * precio_unidad`.
+
+```{r}
+ventas$total <- ventas$unidades * ventas$precio_unidad
+```
+
 2.  ¿Cuál es la **suma total** facturada (suma de la columna `total`)?
+
+```{r}
+cat("Venta total:", sum(ventas$total))
+```
+
 3.  ¿Cuál es la fila con la venta de **mayor** importe? (`which.max()`)
+```{r}
+ventas[ventas$total == max(ventas$total), ]
+```
+
 4.  Filtra las filas del mes `"Marzo"`.
+
+```{r}
+ventas[ventas$mes == "Marzo", ]
+```
+
 5.  Calcula el **total facturado por mes** usando `aggregate()`.
+
+```{r}
+aggregate(total ~ mes, data = ventas, FUN = sum)
+```
+
 
 <details>
 
@@ -779,10 +831,37 @@ La fórmula `y ~ x` significa "y agrupado por x".
 
 Carga `temperaturas_semana.csv`. Las columnas numéricas son `Madrid`, `Barcelona`, `Sevilla`, `Valencia`. La columna `dia` es texto.
 
+```{r}
+temp <- read.csv("csv/temperaturas_semana.csv")
+head(temp, 3)
+```
+
 1.  Calcula la temperatura **media de cada ciudad** (por columna). Usa `apply(..., MARGIN = 2, FUN = mean)` sobre las columnas numéricas.
+
+```{r}
+
+round( apply(Filter(is.numeric, temp), MARGIN = 2, FUN = mean), 2)
+```
+
 2.  Calcula la temperatura **media de cada día** (por fila), `MARGIN = 1`.
+
+```{r}
+avg_temps <- apply(Filter(is.numeric, temp), MARGIN = 1, FUN = mean)
+data.frame(dia = 1:7, temp_media = round(avg_temps,2) )
+```
+
 3.  ¿Cuál fue la temperatura **máxima** registrada en cada ciudad?
+
+```{r}
+apply(Filter(is.numeric, temp), MARGIN=2, FUN = max)
+```
+
+
 4.  ¿En qué día se alcanzó la temperatura **máxima** en Sevilla? (combina `which.max()` con la columna `dia`).
+
+```{r}
+temp[which.max(temp$Sevilla), c("dia", "Sevilla")]
+```
 
 <details>
 
@@ -801,11 +880,56 @@ Antes de aplicar, selecciona solo las columnas numéricas: `temperaturas[, 2:5]`
 Carga `peliculas.csv` y responde de un tirón (usando lo aprendido):
 
 1.  ¿Cuál es la duración media, mediana y máxima de las películas?
+
+```{r}
+data.frame(duración = c("media", "mediana", "máxima"),
+           valor = round( c(mean(movies$duration_min),
+                     median(movies$duration_min),
+                     max(movies$duration_min)
+                     ), 2)
+)
+```
+
 2.  ¿Cuántas películas hay de cada género?
+
+```{r}
+df <- data.frame(table(movies$genre))
+names(df) <- c("genre", "count")
+df[order(df$count, decreasing = T), ]
+```
+
 3.  ¿Cuál es la película mejor valorada?
+
+```{r}
+movies[which.max(movies$rating), ]
+```
+
 4.  ¿Qué porcentaje de películas son posteriores al año 2000?
+
+```{r}
+round( nrow(movies[movies$year > 2000,]) / nrow(movies) * 100, 2)
+```
+
 5.  Crea una columna nueva `decada` que valga `"70s"`, `"80s"`, `"90s"`, `"2000s"`, `"2010s"` según el año. Pista: usa `floor(anio / 10) * 10` o `cut()`.
+
+```{r}
+breaks = seq(1970, 2020, 10)
+labels = paste0(breaks[1:length(breaks)-1], "s")
+labels <- gsub("19", "", labels)
+# cut() necesita n-1 labels para n breaks.
+movies$decade <- cut(movies$year, breaks, labels,
+                     include.lowest = T, right = F)
+
+movies
+```
+
 6.  Calcula la valoración media **por década** con `aggregate()`.
+
+```{r}
+aggregate(rating ~ decade, data = movies,
+          FUN = function (x) round( mean(x), 2) )
+```
+
 
 <details>
 
